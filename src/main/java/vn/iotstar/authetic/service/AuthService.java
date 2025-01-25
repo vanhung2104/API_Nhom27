@@ -55,6 +55,64 @@ public class AuthService {
         return "OTP verified successfully!";
     }
 
+    public String loginUser(String email, String password) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return "User not found!";
+        }
+
+        User user = userOpt.get();
+        // Kiểm tra xem tài khoản đã được xác minh chưa
+        if (!user.getIsVerified()) {
+            return "Account is not verified. Please check your email for the OTP.";
+        }
+
+        // Kiểm tra mật khẩu (thực tế nên mã hóa mật khẩu và so sánh băm)
+        if (!password.equals(user.getPassword())) {
+            return "Invalid email or password!";
+        }
+
+        return "Login successful!";
+    }
+
+    public String forgotPassword(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return "User not found!";
+        }
+
+        User user = userOpt.get();
+
+        // Tạo mã OTP mới
+        String otp = generateOtp();
+        user.setOtpCode(otp);
+        userRepository.save(user);
+
+        // Gửi email OTP để đặt lại mật khẩu
+        emailService.sendOtpEmail(email, "Password Reset OTP", otp);
+
+        return "Password reset OTP sent to your email.";
+    }
+
+    public String resetPassword(String email, String otp, String newPassword) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return "User not found!";
+        }
+
+        User user = userOpt.get();
+        if (!otp.equals(user.getOtpCode())) {
+            return "Invalid OTP!";
+        }
+
+        // Cập nhật mật khẩu (thực tế nên mã hóa mật khẩu)
+        user.setPassword(newPassword);
+        user.setOtpCode(null); // Xóa OTP sau khi sử dụng
+        userRepository.save(user);
+
+        return "Password reset successfully!";
+    }
+
     private String generateOtp() {
         return String.format("%06d", new Random().nextInt(999999));
     }

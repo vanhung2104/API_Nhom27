@@ -25,4 +25,22 @@ public class AuthController {
     public String verifyOtp(@RequestParam String email, @RequestParam String otp) {
         return authService.verifyOtp(email, otp);
     }
+
+    @PostMapping("/login")
+    public String login(@RequestParam String email, @RequestParam String password) {
+        return authService.loginUser(email, password);
+    }
+
+    @PostMapping("/forgot-password")
+    public String forgotPassword(@RequestParam String email) {
+        return authService.forgotPassword(email);
+    }
+
+    @PostMapping("/reset-password")
+    public String resetPassword(
+            @RequestParam String email,
+            @RequestParam String otp,
+            @RequestParam String newPassword) {
+        return authService.resetPassword(email, otp, newPassword);
+    }
 }
